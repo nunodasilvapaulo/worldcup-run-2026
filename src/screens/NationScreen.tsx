@@ -15,7 +15,7 @@ export function NationScreen() {
           <span className="text-[var(--color-wc-gold)]/90">
             {getStarterNationIds().length} nations
           </span>{' '}
-          are available to play; hover any team to preview their starting XI.
+          are available to play — pick any team. Hover to preview the opening squad.
         </p>
       </header>
 
@@ -28,10 +28,6 @@ export function NationScreen() {
           />
         ))}
       </div>
-
-      <p className="mt-6 text-center text-[10px] text-white/35">
-        More nations unlock in future updates
-      </p>
     </div>
   )
 }

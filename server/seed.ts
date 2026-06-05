@@ -2,15 +2,13 @@
  * Seed SQLite from bundled TS data. Re-run anytime: npm run db:seed
  */
 import { NATION_ROSTERS, NATION_LEGENDS } from '../src/game/players2026.ts'
-import { NATIONS_2026, STARTER_NATION_IDS } from '../src/game/nations2026.ts'
+import { NATIONS_2026 } from '../src/game/nations2026.ts'
 import { NON_WC_NATIONS } from '../src/game/nonWcNations.ts'
 import { WC_NATION_ROSTERS } from '../src/game/wcNationRosters.ts'
 import { NON_WC_ROSTERS } from '../src/game/nonWcRosters.ts'
 import type { Nation } from '../src/game/types.ts'
 import type { PlayerTemplate } from '../src/game/players2026.ts'
 import { getDb } from './db.ts'
-
-const starterIds = new Set<string>(STARTER_NATION_IDS)
 
 function insertNation(db: ReturnType<typeof getDb>, nation: Nation, opts: { isWc: boolean }) {
   db.prepare(
@@ -28,7 +26,7 @@ function insertNation(db: ReturnType<typeof getDb>, nation: Nation, opts: { isWc
     nation.isHost ? 1 : 0,
     nation.debut2026 ? 1 : 0,
     opts.isWc ? 1 : 0,
-    starterIds.has(nation.id) ? 1 : 0,
+    opts.isWc ? 1 : 0,
   )
 }
 

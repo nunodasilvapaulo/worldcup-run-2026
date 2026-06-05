@@ -56,17 +56,8 @@ export const NATIONS_2026: Nation[] = [
 
 export const NATION_BY_ID = Object.fromEntries(NATIONS_2026.map((n) => [n.id, n])) as Record<string, Nation>
 
-/** MVP starter nations */
-export const STARTER_NATION_IDS = [
-  'argentina',
-  'france',
-  'brazil',
-  'usa',
-  'mexico',
-  'curacao',
-  'uzbekistan',
-  'jordan',
-] as const
+/** All 48 World Cup nations are playable */
+export const STARTER_NATION_IDS = NATIONS_2026.map((n) => n.id)
 
 export function getNation(id: string): Nation {
   if (isGameDataLoaded()) {

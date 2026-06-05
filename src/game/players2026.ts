@@ -37,15 +37,14 @@ export function callUpRank(t: PlayerTemplate, roster: PlayerTemplate[]): number 
   return idx >= 0 ? idx + 1 : roster.length + 1
 }
 
-function pickCallUpWithGoalkeeper(sorted: PlayerTemplate[], count: number): PlayerTemplate[] {
-  const picked = sorted.slice(0, Math.min(count, sorted.length))
-  if (!picked.some((p) => p.role === 'GK')) {
-    const gk = sorted.find((p) => p.role === 'GK')
-    if (gk && !picked.includes(gk)) {
-      picked[picked.length - 1] = gk
-    }
-  }
-  return picked
+/** Pick N players from a sorted pool — exactly one GK when the roster has one. */
+function pickCallUpLineup(sorted: PlayerTemplate[], count: number): PlayerTemplate[] {
+  const gks = sorted.filter((p) => p.role === 'GK')
+  const outfield = sorted.filter((p) => p.role !== 'GK')
+  const picked: PlayerTemplate[] = []
+  if (gks.length > 0) picked.push(gks[0]!)
+  picked.push(...outfield.slice(0, count - picked.length))
+  return picked.slice(0, count)
 }
 
 /** Weakest N from the full call-up (highest squad ranks; always includes a GK when available). */
@@ -55,7 +54,7 @@ export function weakestCallUpTemplates(nationId: string, count = 5): PlayerTempl
   const sorted = [...roster].sort(
     (a, b) => callUpRank(b, roster) - callUpRank(a, roster),
   )
-  return pickCallUpWithGoalkeeper(sorted, count)
+  return pickCallUpLineup(sorted, count)
 }
 
 /** Strongest N from the full call-up (lowest squad ranks; always includes a GK when available). */
@@ -65,7 +64,7 @@ export function bestCallUpTemplates(nationId: string, count = 5): PlayerTemplate
   const sorted = [...roster].sort(
     (a, b) => callUpRank(a, roster) - callUpRank(b, roster),
   )
-  return pickCallUpWithGoalkeeper(sorted, count)
+  return pickCallUpLineup(sorted, count)
 }
 
 /** Random N from the nation's call-up pool — friendlies always roll fresh names. */
@@ -82,9 +81,10 @@ export function randomCallUpTemplates(nationId: string, count = 5): PlayerTempla
     pool.splice(pool.indexOf(gk), 1)
   }
 
-  while (picked.length < count && pool.length > 0) {
-    const idx = Math.floor(Math.random() * pool.length)
-    picked.push(pool.splice(idx, 1)[0]!)
+  const outfield = pool.filter((p) => p.role !== 'GK')
+  while (picked.length < count && outfield.length > 0) {
+    const idx = Math.floor(Math.random() * outfield.length)
+    picked.push(outfield.splice(idx, 1)[0]!)
   }
   return picked
 }

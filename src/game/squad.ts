@@ -97,17 +97,18 @@ export function squadHasGoalkeeper(squad: SquadPlayer[]): boolean {
   return squad.some((p) => p.role === 'GK' && p.hp > 0)
 }
 
-/** Replacing `replaceId` with `incoming` must leave at least one goalkeeper. */
+/** Squad must keep exactly one goalkeeper — no second GK, never zero GKs. */
 export function canReplaceKeepingGk(
   squad: SquadPlayer[],
   replaceId: string,
   incoming: Pick<SquadPlayer, 'role'>,
 ): boolean {
   const outgoing = squad.find((p) => p.id === replaceId)
-  if (!outgoing || outgoing.role !== 'GK') return true
   const otherGks = squad.filter((p) => p.role === 'GK' && p.id !== replaceId).length
-  if (otherGks > 0) return true
-  return incoming.role === 'GK'
+
+  if (incoming.role === 'GK' && outgoing?.role !== 'GK' && otherGks > 0) return false
+  if (outgoing?.role === 'GK' && incoming.role !== 'GK') return false
+  return true
 }
 
 function shuffleTemplates<T>(items: T[]): T[] {
@@ -137,6 +138,10 @@ export function generateRecruitOptions(
   )
 
   let templates = pickWorldCupRecruitTemplates(nationId, squadNames, count)
+
+  if (!needsGk) {
+    templates = templates.filter((t) => t.role !== 'GK')
+  }
 
   if (needsGk && !templates.some((t) => t.role === 'GK')) {
     const gkPool = getRoster(nationId).filter(

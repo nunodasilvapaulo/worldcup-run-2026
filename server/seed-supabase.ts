@@ -22,7 +22,7 @@ function loadEnvLocal() {
 
 loadEnvLocal()
 import { NATION_ROSTERS, NATION_LEGENDS } from '../src/game/players2026.ts'
-import { NATIONS_2026, STARTER_NATION_IDS } from '../src/game/nations2026.ts'
+import { NATIONS_2026 } from '../src/game/nations2026.ts'
 import { NON_WC_NATIONS } from '../src/game/nonWcNations.ts'
 import { WC_NATION_ROSTERS } from '../src/game/wcNationRosters.ts'
 import { NON_WC_ROSTERS } from '../src/game/nonWcRosters.ts'
@@ -41,7 +41,6 @@ if (!url || !serviceKey) {
 }
 
 const supabase = createClient(url, serviceKey, { auth: { persistSession: false } })
-const starterIds = new Set<string>(STARTER_NATION_IDS)
 const BATCH = 400
 
 function nationRow(nation: Nation, isWc: boolean) {
@@ -56,7 +55,7 @@ function nationRow(nation: Nation, isWc: boolean) {
     is_host: nation.isHost ?? false,
     debut_2026: nation.debut2026 ?? false,
     is_wc: isWc,
-    is_playable: starterIds.has(nation.id),
+    is_playable: isWc,
   }
 }
 

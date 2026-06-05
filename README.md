@@ -54,7 +54,7 @@ Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in Vercel project settings.
 ## Features
 
 - 48 qualified nations in the opponent pool (2026)
-- 8 playable nations (favorites, hosts, underdogs)
+- All 48 World Cup nations playable
 - Branching tournament map (group → knockout → final)
 - Tactics: High Press / Counter / Possession
 - Normal & Ironman modes
