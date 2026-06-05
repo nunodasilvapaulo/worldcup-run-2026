@@ -4,11 +4,13 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n client,api -c cyan,magenta \"npm run dev:client\" \"npm run dev:api\"",
+    "dev": "vite",
+    "dev:full": "concurrently -n client,api -c cyan,magenta \"npm run dev:client\" \"npm run dev:api\"",
     "dev:client": "vite",
     "dev:api": "tsx watch server/index.ts",
     "parse:wc-squads": "node scripts/parse-wc-squads.mjs",
     "db:seed": "tsx server/seed.ts",
+    "db:seed:supabase": "tsx server/seed-supabase.ts",
     "build": "tsc -b && vite build",
     "start": "cross-env NODE_ENV=production tsx server/index.ts",
     "start:prod": "cross-env NODE_ENV=production tsx server/index.ts",
@@ -17,6 +19,7 @@
   "dependencies": {
     "@hono/node-server": "^1.14.4",
     "better-sqlite3": "^11.9.1",
+    "@supabase/supabase-js": "^2.105.4",
     "hono": "^4.7.10",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

@@ -1,98 +1,123 @@
 # Deploy World Cup Run 2026
 
+**Stack:** React (Vite) on **Vercel** + **Supabase** (Postgres) — same pattern as GD Benavente Scout.
+
 Repo: **https://github.com/nunodasilvapaulo/worldcup-run-2026**
 
-One Docker container serves the React game and Hono API. SQLite stores squads and session saves. Pick **Render** (easiest — volume is automatic) or **Railway** (also fine — one extra click for the volume).
+No login for players — Supabase **anonymous auth** gives each browser a session; saves are tied to that session.
 
 ---
 
-## Option A — Render (recommended, ~5 minutes)
+## 1. Supabase (~5 min)
 
-Everything is pre-configured in `render.yaml` (Docker, health check, 1 GB disk for saves).
+### Create project
 
-### Step 1 — Create a Render account
+1. Go to [supabase.com](https://supabase.com) → **New project**
+2. Pick a name and region, set a DB password, wait for provisioning
 
-1. Go to [render.com](https://render.com) and sign up (GitHub login works).
-2. Open the [Render Dashboard](https://dashboard.render.com).
+### Run the schema
 
-### Step 2 — Connect GitHub (first time only)
+1. **SQL Editor** → **New query**
+2. Paste the contents of `supabase/migrations/001_worldcup_schema.sql`
+3. Click **Run**
 
-1. Click your profile (top right) → **Account Settings** → **GitHub**.
-2. Click **Connect GitHub** and authorize Render.
-3. When asked, grant access to **worldcup-run-2026** (or all repos).
+### Enable anonymous sign-in
 
-### Step 3 — Deploy from Blueprint
+1. **Authentication** → **Providers** → **Anonymous sign-ins** → **Enable**
 
-1. Dashboard → **New +** → **Blueprint**.
-2. Under **Connect a repository**, find **nunodasilvapaulo/worldcup-run-2026**.
-3. Click **Connect**. Render reads `render.yaml` and shows:
-   - Web service `worldcup-run-2026` (Docker)
-   - Disk `worldcup-data` mounted at `/var/data`
-   - Env: `NODE_ENV=production`, `DATABASE_PATH=/var/data/worldcup.db`
-4. Click **Apply**. First build takes **5–10 minutes** (native module compile for SQLite).
-5. When status is **Live**, open the URL at the top (e.g. `https://worldcup-run-2026.onrender.com`).
+### Get API keys
 
-### Step 4 — Verify
+**Project Settings → API:**
 
-- Health: `https://YOUR-URL.onrender.com/api/health` → `{"ok":true}`
-- Open the site, pick a nation, start a run — refresh the page; progress should persist.
+| Key | Use |
+|-----|-----|
+| Project URL | `VITE_SUPABASE_URL` |
+| `anon` `public` | `VITE_SUPABASE_ANON_KEY` (Vercel + `.env.local`) |
+| `service_role` `secret` | `SUPABASE_SERVICE_ROLE_KEY` (seed only — never in Vercel) |
 
-### After code changes
+### Seed game data
 
-Push to GitHub → Render redeploys automatically. Saves stay on the disk.
+On your machine, copy `.env.local.example` → `.env.local` and fill in the three values. Then:
+
+```bash
+npm install
+npm run db:seed:supabase
+```
+
+You should see ~63 nations and 1200+ players seeded.
 
 ---
 
-## Option B — Railway (~5 minutes)
+## 2. Vercel (~3 min)
 
-`railway.toml` configures Docker build and health checks. You add the volume once (dashboard or CLI).
+### Deploy
 
-### Path 1 — Dashboard (no CLI)
-
-1. Go to [railway.app](https://railway.app) and sign up with GitHub.
-2. **New Project** → **Deploy from GitHub repo** → select **worldcup-run-2026**.
-3. Wait for the first deploy to finish (may fail health check until step 4 — that's OK).
-4. Click the service → **Settings** → **Volumes** → **Add volume**:
-   - Mount path: `/app/data`
-5. **Variables** tab → add:
-   - `DATABASE_PATH` = `/app/data/worldcup.db`
-   - `NODE_ENV` = `production`
-6. **Settings** → **Networking** → **Generate Domain**.
-7. Open the public URL.
-
-### Path 2 — CLI (Windows PowerShell)
-
-From the project folder:
-
-```powershell
-npm install -g @railway/cli
-railway login          # opens browser — approve access
-railway init           # create/link project
-railway up             # first deploy
-railway volume add --mount-path /app/data
-railway variables set DATABASE_PATH=/app/data/worldcup.db NODE_ENV=production
-railway domain         # create public URL
+```bash
+npm install -g vercel
+cd worldcup-run-2026
+vercel --prod
 ```
 
-Or run the helper script:
+Or connect GitHub in the [Vercel dashboard](https://vercel.com/new):
 
-```powershell
-.\scripts\setup-railway.ps1
-```
+1. **Add New → Project** → import **worldcup-run-2026**
+2. Framework: **Vite** (auto-detected)
+3. **Environment variables** (Production + Preview):
+
+   | Name | Value |
+   |------|-------|
+   | `VITE_SUPABASE_URL` | your Supabase project URL |
+   | `VITE_SUPABASE_ANON_KEY` | your anon public key |
+
+4. **Deploy**
+
+`vercel.json` handles SPA routing. No Docker or custom server needed.
 
 ### Verify
 
-- `https://YOUR-DOMAIN.up.railway.app/api/health` → `{"ok":true}`
+1. Open your Vercel URL
+2. Pick a nation, start a run, refresh — progress should persist
+3. In Supabase **Table Editor → game_saves**, you should see a row after playing
+
+---
+
+## Local development
+
+```bash
+cp .env.local.example .env.local   # fill Supabase keys
+npm install
+npm run db:seed:supabase           # once
+npm run dev                        # http://127.0.0.1:5173
+```
+
+### Optional: SQLite API (offline / no Supabase)
+
+```bash
+npm run db:seed
+npm run dev:full    # Vite + Hono on :3001
+```
+
+Remove or leave empty `VITE_SUPABASE_*` in `.env.local` to use bundled JSON rosters only.
+
+---
+
+## Updating squads
+
+```bash
+npm run parse:wc-squads    # optional: refresh from Wikipedia
+npm run db:seed:supabase   # push to Supabase
+git push                   # redeploys Vercel automatically
+```
 
 ---
 
 ## Environment variables
 
-| Variable | Render (default) | Railway (set manually) |
-|----------|------------------|------------------------|
-| `NODE_ENV` | `production` | `production` |
-| `DATABASE_PATH` | `/var/data/worldcup.db` | `/app/data/worldcup.db` |
-| `PORT` | Set by platform | Set by platform |
+| Variable | Where | Purpose |
+|----------|-------|---------|
+| `VITE_SUPABASE_URL` | Vercel + `.env.local` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Vercel + `.env.local` | Client API access |
+| `SUPABASE_SERVICE_ROLE_KEY` | Local seed only | Bypass RLS to seed nations/players |
 
 ---
 
@@ -100,32 +125,13 @@ Or run the helper script:
 
 | Problem | Fix |
 |---------|-----|
-| Build fails on `better-sqlite3` | Normal on first Docker build; wait for full compile. Ensure using Dockerfile (not Nixpacks-only). |
-| Site loads but saves reset | Volume/disk not mounted — check `DATABASE_PATH` matches mount path. |
-| 502 / not healthy yet | Wait 1–2 min after first deploy; check logs for `World Cup Run production →`. |
-| Render free tier sleeps | First visit after idle may take ~30s to wake. |
+| “Could not connect” on load | Check Vercel env vars; confirm anonymous auth is enabled |
+| “No nations in database” | Run `npm run db:seed:supabase` |
+| Saves don’t persist | Anonymous auth disabled, or ad-blocker blocking Supabase |
+| Blank after deploy | Check Vercel build logs; ensure `npm run build` passes |
 
 ---
 
-## Local production test
+## Legacy: Docker / Render / Railway
 
-```bash
-npm install
-npm run db:seed
-npm run build
-npm run start:prod
-```
-
-Open http://localhost:3001 — health at `/api/health`.
-
----
-
-## Updating squads after deploy
-
-```bash
-npm run parse:wc-squads   # optional: refresh from Wikipedia
-npm run db:seed           # verify locally
-git push                  # triggers redeploy
-```
-
-The server auto-seeds an empty database on boot (48 nations, 1200+ players).
+The `Dockerfile`, `render.yaml`, and `railway.toml` still work if you prefer a single container with SQLite. **Vercel + Supabase is the recommended setup.**

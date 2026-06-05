@@ -2,59 +2,54 @@
 
 Fan roguelike autobattler inspired by [Pokelike](https://pokelike.xyz). Lead one of 8 national teams through a branching World Cup 2026 path.
 
+## Stack
+
+- **Frontend**: React + TypeScript + Vite
+- **Backend / DB**: Supabase (Postgres + anonymous auth)
+- **Deploy**: Vercel
+
 ## Quick start (local)
 
 ```bash
 cd worldcup-run-2026
 npm install
-npm run db:seed    # load nations + call-ups into SQLite
-npm run dev        # Vite (5173) + API (3001)
+cp .env.local.example .env.local   # add Supabase URL + anon key
+npm run db:seed:supabase           # load nations + call-ups
+npm run dev
 ```
 
 Open http://127.0.0.1:5173
 
-No login — your browser gets an anonymous session cookie (`wc_sid`). Saves and call-up data live in SQLite under `data/worldcup.db`.
+No login — Supabase anonymous auth gives your browser a session. Saves live in Postgres.
+
+Full deploy steps: **[DEPLOY.md](./DEPLOY.md)**
 
 ## Architecture
 
 | Layer | Role |
 |--------|------|
 | **React client** | Game UI + logic |
-| **Hono API** (`server/`) | Session cookies, cloud saves, call-up data |
-| **SQLite** (`data/worldcup.db`) | Nations, players, legends, per-session saves |
+| **Supabase** | Nations, players, per-session saves (RLS) |
+| **Vercel** | Static SPA hosting |
 
-Bundled TS files are still the source of truth for seeding. Edit rosters in the DB directly, or update the TS files and re-run `npm run db:seed`.
+Bundled JSON/TS files are the source of truth for seeding. Edit `data/wc-squads-2026.json` and re-run `npm run db:seed:supabase`.
 
 ### Managing call-up data
 
 Full **26-man FIFA squads** are in `data/wc-squads-2026.json` (parsed from [Wikipedia](https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_squads)). Each player has `squadRank` (1 = star, 26 = weakest).
 
-To refresh from Wikipedia:
-
 ```bash
 npm run parse:wc-squads
-npm run db:seed
+npm run db:seed:supabase
 ```
-
-Or edit `data/wc-squads-2026.json` directly, then `npm run db:seed`.
 
 ## Production deploy
 
-**Repo:** [github.com/nunodasilvapaulo/worldcup-run-2026](https://github.com/nunodasilvapaulo/worldcup-run-2026)
-
-| Platform | How |
-|----------|-----|
-| **Render** (easiest) | [Dashboard → New Blueprint](https://dashboard.render.com/blueprint/new) → connect repo → **Apply** |
-| **Railway** | [New project from GitHub](https://railway.app/new) → add volume at `/app/data` → set `DATABASE_PATH` |
-
-Full click-by-click steps: **[DEPLOY.md](./DEPLOY.md)**
-
-Local production test:
-
 ```bash
-npm run build
-npm run start:prod   # http://localhost:3001
+vercel --prod
 ```
+
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in Vercel project settings. See [DEPLOY.md](./DEPLOY.md).
 
 ## Features
 
