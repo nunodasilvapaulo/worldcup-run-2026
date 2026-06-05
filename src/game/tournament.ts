@@ -303,6 +303,7 @@ export function createTournament(playerNationId: string): TournamentState {
       `WC 2026 — Group ${info.groupId}: ${groupLabel}`,
       'Top 2 + 8 best third-placed teams advance to Round of 32.',
     ],
+    recentHeadlines: [],
     eliminatedIds: [],
     knockoutRound: 0,
     simulatedMatchdays: 0,
@@ -360,14 +361,16 @@ export function recordPlayerGroupResult(
     const bg = simWorldMatchday(t, mdIndex, [playerNationId, oppId])
     extraScorers = bg.scorerEvents
     extraAssists = bg.assistEvents
+    const recentHeadlines = [...headlines, ...bg.headlines]
     t = {
       ...t,
       groups: bg.groups,
       simulatedMatchdays: mdIndex + 1,
-      headlines: [...headlines, ...bg.headlines],
+      recentHeadlines,
+      headlines: [...recentHeadlines, ...t.headlines],
     }
   } else {
-    t = { ...t, headlines: [...headlines, ...t.headlines] }
+    t = { ...t, recentHeadlines: headlines, headlines: [...headlines, ...t.headlines] }
   }
 
   const sorted = sortStandings(group.standings)
@@ -391,15 +394,17 @@ export function advanceBackgroundAfterMap(
     t.qualificationNote = youIn
       ? `Qualified for Round of 32 (${qualifiers.length} teams).`
       : 'Eliminated in group stage (sim).'
-    t.headlines = [
+    t.recentHeadlines = [
       youIn ? '✅ Round of 32 — you are through!' : '❌ Out in the group stage.',
       `Best 3rd places include: ${thirdQualifiers.slice(0, 4).map((id) => getNation(id).flag).join(' ')}`,
       `Next: ${getNation(t.knockoutOpponentIds[0]!).flag} ${getNation(t.knockoutOpponentIds[0]!).name}`,
-      ...t.headlines,
-    ].slice(0, 12)
+    ]
+    t.headlines = [...t.recentHeadlines, ...t.headlines].slice(0, 12)
     t.knockoutRound = 1
     return t
   }
+
+  if (completedMapIndex < 3) return t
 
   const koIdx = completedMapIndex - 3
   const eliminated = t.knockoutOpponentIds[koIdx]
@@ -418,6 +423,7 @@ export function advanceBackgroundAfterMap(
     )
   }
   t.knockoutRound = Math.min(5, t.knockoutRound + 1)
+  t.recentHeadlines = simHeadlines
   t.headlines = [...simHeadlines, ...t.headlines].slice(0, 12)
   return t
 }

@@ -159,6 +159,8 @@ export interface TournamentState {
   groupOpponentIds: string[]
   knockoutOpponentIds: string[]
   headlines: string[]
+  /** Headlines from the most recently completed matchday only */
+  recentHeadlines: string[]
   eliminatedIds: string[]
   knockoutRound: number
   /** How many group MDs simulated worldwide (0–3) */

@@ -130,10 +130,6 @@ export function SquadCard({
 
           {player.isLegend ? '⭐ ' : ''}
 
-          {player.callUpRank != null && (
-            <span className="text-[var(--color-wc-gold)]/85 font-bold mr-1">#{player.callUpRank}</span>
-          )}
-
           {player.name}
 
         </p>

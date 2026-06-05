@@ -20,6 +20,7 @@ function migrateRun(run: RunState): RunState {
   const tournament = {
     ...tournamentRaw,
     simulatedMatchdays: tournamentRaw.simulatedMatchdays ?? 0,
+    recentHeadlines: tournamentRaw.recentHeadlines ?? [],
     qualificationNote: tournamentRaw.qualificationNote ?? '',
   }
   const map =

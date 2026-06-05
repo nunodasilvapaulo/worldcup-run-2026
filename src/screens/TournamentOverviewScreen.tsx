@@ -131,16 +131,6 @@ export function TournamentOverviewScreen() {
 
                 return (
                   <div key={s.nationId}>
-                    {rank === 3 && (
-                      <div
-                        className="my-1.5 border-t border-dashed border-[var(--color-wc-green)]/45 pt-1"
-                        aria-hidden
-                      >
-                        <p className="text-[8px] uppercase tracking-widest text-[var(--color-wc-green)]/75 text-center">
-                          Top 2 qualify
-                        </p>
-                      </div>
-                    )}
                     <TournamentTeamRow
                       nationId={s.nationId}
                       rank={rank}
@@ -157,11 +147,11 @@ export function TournamentOverviewScreen() {
           ))}
         </div>
 
-        {t.headlines.length > 0 && (
+        {(t.recentHeadlines?.length ?? 0) > 0 && (
           <div className="mt-4 rounded-xl border border-white/10 p-3">
             <p className="text-xs font-bold text-white/50 mb-2">Latest</p>
             <ul className="text-xs text-white/45 space-y-1">
-              {t.headlines.map((h, i) => (
+              {t.recentHeadlines.map((h, i) => (
                 <li key={i}>• {h}</li>
               ))}
             </ul>

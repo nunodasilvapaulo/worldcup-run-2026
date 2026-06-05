@@ -67,9 +67,9 @@ export function TournamentStatus({ run }: { run: RunState }) {
           ))}
         </div>
       )}
-      {run.tournament.headlines.length > 0 && (
+      {(run.tournament.recentHeadlines?.length ?? 0) > 0 && (
         <ul className="text-white/40 space-y-0.5 max-h-20 overflow-auto border-t border-white/10 pt-2">
-          {run.tournament.headlines.slice(0, 5).map((h, i) => (
+          {run.tournament.recentHeadlines.slice(0, 5).map((h, i) => (
             <li key={i}>• {h}</li>
           ))}
         </ul>

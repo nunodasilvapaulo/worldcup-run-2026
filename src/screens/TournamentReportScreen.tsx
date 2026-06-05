@@ -45,7 +45,10 @@ export function TournamentReportScreen() {
         })}
         <p className="text-xs text-white/45 pt-2 border-t border-white/10">Latest results</p>
         <ul className="text-xs text-white/55 space-y-1">
-          {run.tournament.headlines.map((h, i) => (
+          {(run.tournament.recentHeadlines?.length
+            ? run.tournament.recentHeadlines
+            : run.tournament.headlines.filter((h) => !h.startsWith('KO:'))
+          ).map((h, i) => (
             <li key={i}>• {h}</li>
           ))}
         </ul>
