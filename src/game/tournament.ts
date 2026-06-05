@@ -98,7 +98,7 @@ export function playerBossOpponentForMd(tournament: TournamentState, mdIndex: nu
 }
 
 /** FIFA group stage: 3 pts win, 1 draw, 0 loss; tie-break GD, GF */
-function sortStandings(standings: GroupStanding[]): GroupStanding[] {
+export function sortStandings(standings: GroupStanding[]): GroupStanding[] {
   return [...standings].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points
     const gdA = a.gf - a.ga
@@ -114,6 +114,25 @@ interface ThirdPlaceCandidate {
   points: number
   gd: number
   gf: number
+}
+
+/** Eight best third-placed teams by points, GD, GF (live standings). */
+export function computeThirdQualifiers(groups: TournamentGroup[]): string[] {
+  const thirds: ThirdPlaceCandidate[] = []
+  for (const g of groups) {
+    const sorted = sortStandings(g.standings)
+    const third = sorted[2]
+    if (!third) continue
+    thirds.push({
+      nationId: third.nationId,
+      groupId: g.id,
+      points: third.points,
+      gd: third.gf - third.ga,
+      gf: third.gf,
+    })
+  }
+  thirds.sort((a, b) => b.points - a.points || b.gd - a.gd || b.gf - a.gf)
+  return thirds.slice(0, 8).map((t) => t.nationId)
 }
 
 /** Top 2 per group (24) + 8 best third-placed = 32 (WC 2026 rules) */
@@ -190,11 +209,15 @@ function goalStatsFromSimMatch(homeId: string, awayId: string, hg: number, ag: n
   return { scorerEvents, assistEvents }
 }
 
-/** Simulate one matchday across all 12 groups (optionally skip player's group — already played) */
+function fixtureKey(homeId: string, awayId: string): string {
+  return [homeId, awayId].sort().join('|')
+}
+
+/** Simulate one matchday across all 12 groups; skip one fixture already played by the user. */
 export function simWorldMatchday(
   tournament: TournamentState,
   mdIndex: number,
-  skipPlayerGroupId: string | null,
+  skipFixture?: [string, string] | null,
 ): {
   headlines: string[]
   scorerEvents: { scorerName: string; scorerNationId: string }[]
@@ -208,10 +231,11 @@ export function simWorldMatchday(
     ...g,
     standings: g.standings.map((s) => ({ ...s })),
   }))
+  const skipKey = skipFixture ? fixtureKey(skipFixture[0], skipFixture[1]) : null
   for (const group of groups) {
-    if (group.id === skipPlayerGroupId) continue
     const fixtures = getGroupMatchdayFixtures(group.id, mdIndex)
     for (const [homeId, awayId] of fixtures) {
+      if (skipKey && fixtureKey(homeId, awayId) === skipKey) continue
       const r = simulateQuickMatch(homeId, awayId)
       applyResult(group.standings, r.homeId, r.awayId, r.homeGoals, r.awayGoals)
       const stats = goalStatsFromSimMatch(r.homeId, r.awayId, r.homeGoals, r.awayGoals)
@@ -333,7 +357,7 @@ export function recordPlayerGroupResult(
   let extraScorers: { scorerName: string; scorerNationId: string }[] = []
   let extraAssists: { playerName: string; nationId: string }[] = []
   if (t.simulatedMatchdays <= mdIndex) {
-    const bg = simWorldMatchday(t, mdIndex, t.playerGroupId)
+    const bg = simWorldMatchday(t, mdIndex, [playerNationId, oppId])
     extraScorers = bg.scorerEvents
     extraAssists = bg.assistEvents
     t = {
