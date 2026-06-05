@@ -1,0 +1,38 @@
+{
+  "name": "worldcup-run-2026",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n client,api -c cyan,magenta \"npm run dev:client\" \"npm run dev:api\"",
+    "dev:client": "vite",
+    "dev:api": "tsx watch server/index.ts",
+    "parse:wc-squads": "node scripts/parse-wc-squads.mjs",
+    "db:seed": "tsx server/seed.ts",
+    "build": "tsc -b && vite build",
+    "start": "cross-env NODE_ENV=production tsx server/index.ts",
+    "start:prod": "cross-env NODE_ENV=production tsx server/index.ts",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.4",
+    "better-sqlite3": "^11.9.1",
+    "hono": "^4.7.10",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tsx": "^4.19.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.15.0",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "tailwindcss": "^4.3.0",
+    "typescript": "~5.8.3",
+    "vite": "^8.0.16"
+  }
+}

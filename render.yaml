@@ -1,0 +1,16 @@
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: worldcup-run-2026
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_PATH
+        value: /var/data/worldcup.db
+    disk:
+      name: worldcup-data
+      mountPath: /var/data
+      sizeGB: 1
