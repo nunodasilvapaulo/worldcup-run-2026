@@ -25,7 +25,7 @@ function TournamentTeamRow({
   standing: GroupStanding
   isYou: boolean
   squad: SquadPlayer[]
-  qualTag?: 'qualify' | null
+  qualTag?: 'auto' | 'best-third' | null
   onTeamClick: () => void
 }) {
   const nation = getNation(nationId)
@@ -37,7 +37,8 @@ function TournamentTeamRow({
       className={[
         'w-full flex justify-between items-center py-1.5 px-1 -mx-1 rounded-lg transition-colors text-left',
         isYou ? 'text-white font-medium hover:bg-white/10' : 'text-white/55 hover:bg-white/5 hover:text-white/75',
-        qualTag === 'qualify' ? 'bg-[var(--color-wc-green)]/10' : '',
+        qualTag === 'auto' ? 'bg-[var(--color-wc-green)]/10' : '',
+        qualTag === 'best-third' ? 'bg-[var(--color-wc-gold)]/12' : '',
       ].join(' ')}
     >
       <span className="flex items-center gap-1.5 min-w-0">
@@ -97,7 +98,11 @@ export function TournamentOverviewScreen() {
         <div className="flex flex-wrap gap-3 text-[9px] text-white/45 mb-4">
           <span className="flex items-center gap-1.5">
             <span className="inline-block w-3 h-3 rounded-sm bg-[var(--color-wc-green)]/25 border border-[var(--color-wc-green)]/40" />
-            Qualified (top 2 + 8 best 3rd)
+            Top 2 per group
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-sm bg-[var(--color-wc-gold)]/25 border border-[var(--color-wc-gold)]/45" />
+            8 best 3rd places
           </span>
         </div>
 
@@ -118,7 +123,7 @@ export function TournamentOverviewScreen() {
                 const isYou = s.nationId === playerNation?.id
                 const squad = getNationSquad(run, s.nationId)
                 const qualTag =
-                  rank <= 2 || (rank === 3 && bestThirds.has(s.nationId)) ? 'qualify' : null
+                  rank <= 2 ? 'auto' : rank === 3 && bestThirds.has(s.nationId) ? 'best-third' : null
 
                 return (
                   <div key={s.nationId}>
@@ -152,7 +157,7 @@ export function TournamentOverviewScreen() {
                     key={entry.nationId}
                     className={[
                       'flex justify-between items-center gap-2 py-1 px-1 -mx-1 rounded-lg',
-                      qualifies ? 'bg-[var(--color-wc-green)]/10' : 'text-white/50',
+                      qualifies ? 'bg-[var(--color-wc-gold)]/12' : 'text-white/50',
                       isYou ? 'font-medium text-white' : '',
                     ].join(' ')}
                   >
