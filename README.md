@@ -40,16 +40,21 @@ Or edit `data/wc-squads-2026.json` directly, then `npm run db:seed`.
 
 ## Production deploy
 
-Build the client, seed the DB, run the API (it serves `dist/` in production):
+**Repo:** [github.com/nunodasilvapaulo/worldcup-run-2026](https://github.com/nunodasilvapaulo/worldcup-run-2026)
+
+| Platform | How |
+|----------|-----|
+| **Render** (easiest) | [Dashboard → New Blueprint](https://dashboard.render.com/blueprint/new) → connect repo → **Apply** |
+| **Railway** | [New project from GitHub](https://railway.app/new) → add volume at `/app/data` → set `DATABASE_PATH` |
+
+Full click-by-click steps: **[DEPLOY.md](./DEPLOY.md)**
+
+Local production test:
 
 ```bash
-npm install
-npm run db:seed
 npm run build
-NODE_ENV=production npm run start   # port 3001 by default
+npm run start:prod   # http://localhost:3001
 ```
-
-Set `PORT` and optionally `DATABASE_PATH` for persistent disk (e.g. Railway, Fly.io, Render volume).
 
 ## Features
 
