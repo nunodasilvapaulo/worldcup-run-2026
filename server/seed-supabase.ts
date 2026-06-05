@@ -2,7 +2,25 @@
  * Seed Supabase from bundled game data. Requires service role key.
  * npm run db:seed:supabase
  */
+import fs from 'fs'
+import path from 'path'
 import { createClient } from '@supabase/supabase-js'
+
+function loadEnvLocal() {
+  const file = path.join(process.cwd(), '.env.local')
+  if (!fs.existsSync(file)) return
+  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const eq = trimmed.indexOf('=')
+    if (eq === -1) continue
+    const key = trimmed.slice(0, eq).trim()
+    const value = trimmed.slice(eq + 1).trim()
+    if (!process.env[key]) process.env[key] = value
+  }
+}
+
+loadEnvLocal()
 import { NATION_ROSTERS, NATION_LEGENDS } from '../src/game/players2026.ts'
 import { NATIONS_2026, STARTER_NATION_IDS } from '../src/game/nations2026.ts'
 import { NON_WC_NATIONS } from '../src/game/nonWcNations.ts'
@@ -12,10 +30,13 @@ import type { Nation } from '../src/game/types.ts'
 import type { PlayerTemplate } from '../src/game/players2026.ts'
 
 const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const serviceKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY
 
 if (!url || !serviceKey) {
-  console.error('Set SUPABASE_URL (or VITE_SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY')
+  console.error(
+    'Missing Supabase credentials. Add VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to .env.local',
+  )
   process.exit(1)
 }
 

@@ -10,7 +10,7 @@
     "dev:api": "tsx watch server/index.ts",
     "parse:wc-squads": "node scripts/parse-wc-squads.mjs",
     "db:seed": "tsx server/seed.ts",
-    "db:seed:supabase": "tsx server/seed-supabase.ts",
+    "db:seed:supabase": "tsx --env-file=.env.local server/seed-supabase.ts",
     "build": "tsc -b && vite build",
     "start": "cross-env NODE_ENV=production tsx server/index.ts",
     "start:prod": "cross-env NODE_ENV=production tsx server/index.ts",

@@ -109,6 +109,25 @@ export function starterTemplates(nationId: string): PlayerTemplate[] {
   return bestCallUpTemplates(nationId, 5)
 }
 
+const PREVIEW_ROLE_ORDER: Record<PlayerRole, number> = {
+  GK: 0,
+  DEF: 1,
+  MID: 2,
+  WNG: 3,
+  ST: 4,
+}
+
+/** Nation hover preview — weakest five, sorted GK → DEF → MID → FWD (WNG/ST). */
+export function previewCallUpTemplates(nationId: string, count = 5): PlayerTemplate[] {
+  const roster = getRoster(nationId)
+  const picked = weakestCallUpTemplates(nationId, count)
+  return [...picked].sort((a, b) => {
+    const byRole = PREVIEW_ROLE_ORDER[a.role] - PREVIEW_ROLE_ORDER[b.role]
+    if (byRole !== 0) return byRole
+    return callUpRank(b, roster) - callUpRank(a, roster)
+  })
+}
+
 export function randomRecruitTemplate(nationId: string, excludeNames: string[]): PlayerTemplate | null {
   const pool = getRoster(nationId).filter((p) => !excludeNames.includes(p.name))
   if (pool.length === 0) return null
