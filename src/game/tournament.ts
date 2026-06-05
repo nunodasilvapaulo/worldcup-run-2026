@@ -108,7 +108,7 @@ export function sortStandings(standings: GroupStanding[]): GroupStanding[] {
   })
 }
 
-interface ThirdPlaceCandidate {
+export interface ThirdPlaceCandidate {
   nationId: string
   groupId: string
   points: number
@@ -116,8 +116,8 @@ interface ThirdPlaceCandidate {
   gf: number
 }
 
-/** Eight best third-placed teams by points, GD, GF (live standings). */
-export function computeThirdQualifiers(groups: TournamentGroup[]): string[] {
+/** All 12 third-placed teams ranked for best-eight qualification (live). */
+export function rankThirdPlaces(groups: TournamentGroup[]): ThirdPlaceCandidate[] {
   const thirds: ThirdPlaceCandidate[] = []
   for (const g of groups) {
     const sorted = sortStandings(g.standings)
@@ -131,8 +131,12 @@ export function computeThirdQualifiers(groups: TournamentGroup[]): string[] {
       gf: third.gf,
     })
   }
-  thirds.sort((a, b) => b.points - a.points || b.gd - a.gd || b.gf - a.gf)
-  return thirds.slice(0, 8).map((t) => t.nationId)
+  return thirds.sort((a, b) => b.points - a.points || b.gd - a.gd || b.gf - a.gf)
+}
+
+/** Eight best third-placed teams by points, GD, GF (live standings). */
+export function computeThirdQualifiers(groups: TournamentGroup[]): string[] {
+  return rankThirdPlaces(groups).slice(0, 8).map((t) => t.nationId)
 }
 
 /** Top 2 per group (24) + 8 best third-placed = 32 (WC 2026 rules) */
@@ -246,7 +250,7 @@ export function simWorldMatchday(
       )
     }
   }
-  return { headlines: headlines.slice(0, 10), scorerEvents, assistEvents, groups }
+  return { headlines, scorerEvents, assistEvents, groups }
 }
 
 function upsertStatRow(

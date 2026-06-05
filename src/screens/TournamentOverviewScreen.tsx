@@ -8,7 +8,7 @@ import { TeamPagePanel } from '@/components/TeamPagePanel'
 import { getNation } from '@/game/nations2026'
 import { getNationSquad } from '@/game/squad'
 import { useGame } from '@/game/store'
-import { computeThirdQualifiers, sortStandings } from '@/game/tournament'
+import { computeThirdQualifiers, rankThirdPlaces, sortStandings } from '@/game/tournament'
 import type { GroupStanding, Nation, SquadPlayer } from '@/game/types'
 
 function TournamentTeamRow({
@@ -25,7 +25,7 @@ function TournamentTeamRow({
   standing: GroupStanding
   isYou: boolean
   squad: SquadPlayer[]
-  qualTag?: 'auto' | 'best-third' | null
+  qualTag?: 'qualify' | null
   onTeamClick: () => void
 }) {
   const nation = getNation(nationId)
@@ -37,8 +37,7 @@ function TournamentTeamRow({
       className={[
         'w-full flex justify-between items-center py-1.5 px-1 -mx-1 rounded-lg transition-colors text-left',
         isYou ? 'text-white font-medium hover:bg-white/10' : 'text-white/55 hover:bg-white/5 hover:text-white/75',
-        qualTag === 'auto' ? 'bg-[var(--color-wc-green)]/10' : '',
-        qualTag === 'best-third' ? 'bg-amber-500/15 ring-1 ring-amber-400/35' : '',
+        qualTag === 'qualify' ? 'bg-[var(--color-wc-green)]/10' : '',
       ].join(' ')}
     >
       <span className="flex items-center gap-1.5 min-w-0">
@@ -48,11 +47,6 @@ function TournamentTeamRow({
         {isYou && (
           <span className="shrink-0 text-[8px] font-bold uppercase tracking-wide text-[var(--color-wc-gold)]">
             You
-          </span>
-        )}
-        {qualTag === 'best-third' && (
-          <span className="shrink-0 text-[7px] font-bold uppercase tracking-wide text-amber-300/90">
-            Best 3rd
           </span>
         )}
       </span>
@@ -88,6 +82,7 @@ export function TournamentOverviewScreen() {
   } | null>(null)
 
   const bestThirds = useMemo(() => new Set(computeThirdQualifiers(t.groups)), [t.groups])
+  const thirdRanking = useMemo(() => rankThirdPlaces(t.groups), [t.groups])
 
   return (
     <>
@@ -102,11 +97,7 @@ export function TournamentOverviewScreen() {
         <div className="flex flex-wrap gap-3 text-[9px] text-white/45 mb-4">
           <span className="flex items-center gap-1.5">
             <span className="inline-block w-3 h-3 rounded-sm bg-[var(--color-wc-green)]/25 border border-[var(--color-wc-green)]/40" />
-            Top 2 per group
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 rounded-sm bg-amber-500/20 border border-amber-400/40" />
-            8 best 3rd places
+            Qualified (top 2 + 8 best 3rd)
           </span>
         </div>
 
@@ -127,7 +118,7 @@ export function TournamentOverviewScreen() {
                 const isYou = s.nationId === playerNation?.id
                 const squad = getNationSquad(run, s.nationId)
                 const qualTag =
-                  rank <= 2 ? 'auto' : rank === 3 && bestThirds.has(s.nationId) ? 'best-third' : null
+                  rank <= 2 || (rank === 3 && bestThirds.has(s.nationId)) ? 'qualify' : null
 
                 return (
                   <div key={s.nationId}>
@@ -146,6 +137,46 @@ export function TournamentOverviewScreen() {
             </div>
           ))}
         </div>
+
+        {thirdRanking.length > 0 && (
+          <div className="mt-4 rounded-xl border border-white/10 bg-black/40 p-3 text-xs">
+            <p className="font-bold text-[var(--color-wc-gold-light)] mb-2">3rd place ranking</p>
+            <p className="text-[9px] text-white/40 mb-2">Top 8 advance to the Round of 32</p>
+            <ul className="space-y-1">
+              {thirdRanking.map((entry, i) => {
+                const qualifies = i < 8
+                const nation = getNation(entry.nationId)
+                const isYou = entry.nationId === playerNation?.id
+                return (
+                  <li
+                    key={entry.nationId}
+                    className={[
+                      'flex justify-between items-center gap-2 py-1 px-1 -mx-1 rounded-lg',
+                      qualifies ? 'bg-[var(--color-wc-green)]/10' : 'text-white/50',
+                      isYou ? 'font-medium text-white' : '',
+                    ].join(' ')}
+                  >
+                    <span className="flex items-center gap-1.5 min-w-0">
+                      <span className="tabular-nums text-white/40 w-4 shrink-0">{i + 1}.</span>
+                      <NationFlag nationId={entry.nationId} size={16} />
+                      <span className="truncate">{nation.name}</span>
+                      <span className="text-white/35 shrink-0">({entry.groupId})</span>
+                      {isYou && (
+                        <span className="shrink-0 text-[8px] font-bold uppercase tracking-wide text-[var(--color-wc-gold)]">
+                          You
+                        </span>
+                      )}
+                    </span>
+                    <span className="tabular-nums shrink-0">
+                      {entry.points}p · {entry.gd >= 0 ? '+' : ''}
+                      {entry.gd} GD
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )}
 
         {(t.recentHeadlines?.length ?? 0) > 0 && (
           <div className="mt-4 rounded-xl border border-white/10 p-3">

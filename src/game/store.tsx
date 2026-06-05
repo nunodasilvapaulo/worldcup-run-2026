@@ -59,7 +59,6 @@ import {
   generateLegendOptions,
   canReplaceKeepingGk,
   generateRecruitOptions,
-  getNationSquad,
   resetSquadIdCounter,
   squadAlive,
   syncSquadPhotos,
@@ -667,8 +666,6 @@ function resolveNode(state: GameState, node: MapNode, mentality: Mentality): Gam
   }
 
   if (isFightNode(node.kind) && node.opponentId) {
-    const storedOpponentSquad =
-      node.kind === 'friendly' ? undefined : getNationSquad(runBase, node.opponentId)
     const plan = planLiveMatch(
       runBase.squad,
       runBase.items,
@@ -678,7 +675,6 @@ function resolveNode(state: GameState, node: MapNode, mentality: Mentality): Gam
       mentality,
       {
         friendlyCallUp: node.kind === 'friendly',
-        storedOpponentSquad,
         officialMatch: node.isBoss,
         nextMatchTraining: node.isBoss ? (runBase.nextMatchTraining ?? null) : null,
       },

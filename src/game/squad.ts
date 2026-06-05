@@ -5,8 +5,7 @@ import {
   legendTemplates,
   lookupPlayerPhoto,
   pickWorldCupRecruitTemplates,
-  randomCallUpTemplates,
-  starterTemplates,
+  randomEliteCallUpTemplates,
   weakestCallUpTemplates,
   type PlayerTemplate,
 } from './players2026'
@@ -162,34 +161,33 @@ export function generateLegendOptions(nationId: string, count = 3): SquadPlayer[
   )
 }
 
-/** Friendly opponents — five random players from the latest call-up (always includes a GK). */
-export function createFriendlyOpponentSquad(nationId: string, level: number): SquadPlayer[] {
+/** AI opponents — random five from the nation's best 10 call-ups (always one GK). */
+export function createAiOpponentSquad(nationId: string, level: number): SquadPlayer[] {
   const nation = getNationOrNonWc(nationId)
   const bonus = (TIER_POWER[nation.tier] ?? 0) + Math.floor(level / 2)
-  const templates = randomCallUpTemplates(nationId, 5)
+  const templates = randomEliteCallUpTemplates(nationId, 5)
   if (templates.length === 0) {
-    return createOpponentSquad(nationId, level)
-  }
-  return templates.map((t) => templateToPlayer(t, level, bonus, undefined, nationId))
-}
-
-export function createOpponentSquad(nationId: string, level: number): SquadPlayer[] {
-  const nation = getNation(nationId)
-  const bonus = (TIER_POWER[nation.tier] ?? 0) + Math.floor(level / 2)
-  const templates = starterTemplates(nationId)
-  return ROLES.map((role) => {
-    const t = templates.find((r) => r.role === role) ?? templates[0]
-    if (!t) {
-      return templateToPlayer(
+    return ROLES.map((role) =>
+      templateToPlayer(
         { name: `${role}`, role, photoUrl: '', base: { pace: 55, shoot: 55, pass: 55, defend: 55 } },
         level,
         bonus,
         undefined,
         nationId,
-      )
-    }
-    return templateToPlayer(t, level, bonus, undefined, nationId)
-  })
+      ),
+    )
+  }
+  return templates.map((t) => templateToPlayer(t, level, bonus, undefined, nationId))
+}
+
+/** @deprecated Use createAiOpponentSquad */
+export function createFriendlyOpponentSquad(nationId: string, level: number): SquadPlayer[] {
+  return createAiOpponentSquad(nationId, level)
+}
+
+/** @deprecated Use createAiOpponentSquad */
+export function createOpponentSquad(nationId: string, level: number): SquadPlayer[] {
+  return createAiOpponentSquad(nationId, level)
 }
 
 /** Backfill missing headshots from nation rosters (saved runs, recruits). */

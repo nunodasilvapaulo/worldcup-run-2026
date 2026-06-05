@@ -52,7 +52,7 @@ function boostSquadStats(squad: SquadPlayer[], difficulty: number) {
   }))
 }
 
-/** Friendly — opponent's best 5 from their call-up squad. */
+/** AI opponent — random 5 from the nation's best 10 call-ups. */
 export function buildFriendlyOpponent(nationId: string, difficulty: number): OpponentSide {
   const nation = getNationOrNonWc(nationId)
   const level = 2 + difficulty

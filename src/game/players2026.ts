@@ -67,6 +67,27 @@ export function bestCallUpTemplates(nationId: string, count = 5): PlayerTemplate
   return pickCallUpLineup(sorted, count)
 }
 
+/** Random N from the best 10 call-ups — AI opponents (always one GK). */
+export function randomEliteCallUpTemplates(nationId: string, count = 5): PlayerTemplate[] {
+  const roster = getRoster(nationId)
+  if (roster.length === 0) return []
+  const elitePool = [...roster]
+    .sort((a, b) => callUpRank(a, roster) - callUpRank(b, roster))
+    .slice(0, 10)
+  const picked: PlayerTemplate[] = []
+  const gks = elitePool.filter((p) => p.role === 'GK')
+  const outfield = elitePool.filter((p) => p.role !== 'GK')
+  if (gks.length > 0) {
+    picked.push(gks[Math.floor(Math.random() * gks.length)]!)
+  }
+  const pool = [...outfield]
+  while (picked.length < count && pool.length > 0) {
+    const idx = Math.floor(Math.random() * pool.length)
+    picked.push(pool.splice(idx, 1)[0]!)
+  }
+  return picked
+}
+
 /** Random N from the nation's call-up pool — friendlies always roll fresh names. */
 export function randomCallUpTemplates(nationId: string, count = 5): PlayerTemplate[] {
   const roster = getRoster(nationId)
